@@ -1,0 +1,62 @@
+---
+title: "Second R Markdown Assignment"
+author: Franco Sanchez
+date: September 16, 2016
+output: html_document
+---
+
+```{r setup, include = FALSE}
+    #Just exploring the data
+data = read.csv(file.choose())
+head(data)
+summary(data)
+str(data)
+
+color <- data$color
+summary(color)
+factor(color) # This does the same thing as line 12
+color_levels <- factor(color, order = FALSE, levels = c("White", "Pink", "Red"))
+summary(color_levels) #THis does the same thing as line 10. so factor vector is not necessary
+table(color)
+
+
+#Creating a table of observation summary
+color_summary <- summary(color_levels)
+column_names <- c("Color", "Observations")
+colors <- c("White", "Pink", "Red")
+col_obs <- c("40", "34", "108")
+table_summary <- c( colors, col_obs)
+table_matrix <- matrix(data = table_summary, ncol = 2, byrow = FALSE)
+colnames(table_matrix) <- c("Color", "Observations")
+
+#Creating Figures with Data
+barplot(prop.table(table(color)), xlab = "Colors", ylab = "Frequency", main = "Observation Frequency of Pink, Red and White")
+barplot(table(color), xlab = "Colors", ylab = "Frequency", main = "Observation Count of Pink, Red, and White")
+boxplot(summary(color), ylab = "All Colors: White, Pink, and Red", xlab = "Total Observations", main = "Boxplot of Color Data", horizontal = TRUE)
+```
+
+
+#Anlaysis of a Simple Dataframe
+
+The data provided in "Poinsettias" is quite simple, with only two variables avaible for analysis (technically one since we ignore "id"). The important summary from this data is from the colors white, pink and red. The following table summarizes the observations:
+
+```{r, echo = TRUE}
+table_matrix
+```
+
+Here are some additonal statistic figures to accompany the table summary:
+
+```{r, echo = FALSE}
+barplot(prop.table(table(color)), xlab = "Colors", ylab = "Frequency", main = "Observation Frequency of Pink, Red and White")
+barplot(table(color), xlab = "Colors", ylab = "Frequency", main = "Observation Count of Pink, Red, and White")
+boxplot(summary(color), ylab = "All Colors: White, Pink, and Red", xlab = "Total Observations", main = "Boxplot of Color Data", horizontal = TRUE)
+```
+
+```{r, echo = FALSE}
+col_obs <- c(40, 34, 108)
+```
+
+Finally, here we have the boxplot values (summary statistics):
+```{r, echo = TRUE}
+summary(col_obs) #Color Observations
+
