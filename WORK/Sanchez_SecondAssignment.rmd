@@ -7,7 +7,7 @@ output: html_document
 
 ```{r setup, include = FALSE}
     #Just exploring the data
-data = read.csv(file.choose())
+data = read.csv("Poinsettias.csv")
 head(data)
 summary(data)
 str(data)
