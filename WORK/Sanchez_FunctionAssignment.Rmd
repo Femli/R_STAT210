@@ -1,0 +1,83 @@
+---
+title: "Function Assignment"
+author: "Franco Sanchez"
+date: "October 14, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+##Assignment:
+###Create your Own Function
+
+You are going to create a function in R.  I do not care what it does, but here are the minimum requirements.
+
+1. It must have at least three arguments
+2. One of the arguments must have a default value
+3. It should be able to validate argument types allowed (`stopifnot`)
+
+
+
+### My Code
+
+```{r}
+test_num <- function(x, int = 1) 
+{
+  stopifnot(is.numeric(x))
+  if (int == 1)
+  x <- as.integer(x)
+  
+  else if(int == 0)
+    x <- x
+  
+  if (x == 0)
+  {
+    print("The integer you intered is 0")
+  }
+  
+  if (x > 0)
+  {
+    print("The integer you entered is positive")
+  }
+  
+  if (x < 0)
+  {
+    print("The integer you entered is negative")
+  }
+  return(x)
+}
+```
+
+
+####Description
+
+This function tests if a number is either negative, 0, or positive.
+
+####Usage
+
+Notice that the variable 'int' is set to 1 by default. This tells the function that the input value 'x' will automatically be converted into an integer. The user has the option of turning this off by setting 'int' to 0.
+
+####Arguments
+
+The function makes the following arguments:
+
+1. Checks if the input is a numeric value. If it is not numeric, an error message will be returned.
+2. Checks if 'int' is either 1 or 0. If 1, then the input is an integer. If 0, the input is left alone (meaning the input can be in fraction form).
+3. Checks if the input is negative in "if (x < 0)".
+4. Checks if the input is 0 in "if (x == 0)".
+5. Checks if the input is positive in "if (x > 0)"
+
+####Details
+
+This is a simple function that can be implemented in other bigger functions that rely on the sing of a number. However, this function is breakable by several arguments that involve numeric values, such as a list or vector input. This function would require further "if - stop" arguments to prevent breaking.
+
+####Examples
+
+```{r}
+test_num(-2)
+test_num(0)
+test_num(3.9)
+test_num(3.9, 0)
+```
+
