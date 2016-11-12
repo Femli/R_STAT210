@@ -1,0 +1,151 @@
+---
+title: "Data Manipulation"
+author: "Franco Sanchez"
+date: "November 12, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Data Manipulation Assignment
+<br>
+
+### Using dplyr functions for data manipulation
+
+`dyplyr` is an R Package that is meant to facilitate data manipulation. It does this by reducing the amount of syntax in the executable R code, as well as providing very efficient functions.
+The major `dplyr` functions include: `select()`, `filter()`, `mutate()`, `group_by()`, and `summarize()`. The following exercise demonstrate how useful these functions are in data manipulation.
+
+### Pipe and functions
+
+`dplyr` includes a way to run multiple functions at once on a particular dataset. This is known as a "pipe", and it the code is `%>$`. For example, we use `select()` to focus on a partiuclar column of the data we are working with, and then `filter()` to extract partiuclar types of data.
+
+```{r echo = FALSE}
+survey <- read.csv("D:/Google Drive/Undergraduate Courses CSUMB/Fall 2016, Semester 7/STAT 210 Statistical Computing Seminar/R Markdown/Assignments/surveys.csv")
+```
+
+```{r message = FALSE, warning = FALSE}
+## First we load the load the dplyr package
+library(dplyr)
+
+```
+<br>
+We can now apply the `dplyr` functions
+```{r}
+## Here we apply the select function to our survey data, and create a new dataframe with the variables of interests
+survey1 <- select(survey, plot_id, species_id, weight)
+
+## Using 'pipes' to apply multiple dplyr functions at once
+survey1 <- survey %>%
+            filter(weight < 5) %>% #we are interested all weight less than 5
+            select(species_id, sex, weight) #without losing our previous modification, we move on to the next
+head(survey1, n = 5)
+```
+<br>
+
+######Challenge 1: Using pipes, subset the data to include individuals collected before 1995, and retain the columns year, sex, and weight.
+
+```{r}
+survey_1995 <- survey %>% # creating a new data set
+  filter((year < 1995),#we extract all information prior to the year 1995
+         !is.na(weight)) %>% #exclude missing variables in weight
+  select(year, sex, weight) # along with the years, we want to include sex and weight
+
+head(survey_1995, n = 5)
+```
+<br>
+
+Next, we will apply the `mutate()` function, which generates new variables that are defined by the parameters we set
+```{r}
+survey %>%
+  filter(!is.na(weight)) %>% ## exlcuding the missing weight values
+  mutate(weight_kg = weight/1000) %>% ## This means we are creating a new column defined by the weight data divided by 1000 units
+  head(n = 5) ## regular commands also work with dplyr pipes
+```
+<br>
+
+Challenge 2: Create a new dataframe from the survey data that meets the following criteria: contains only the species\_id column and a column that contains values that are half the hindfoot\_length values. In this hindfoot\_half column, there are no NA values and all values are < 30.
+```{r}
+survey3 <- survey %>%
+  filter(!is.na(hindfoot_length)) %>% #filtering out all NA values from hindfoot_length
+  mutate(hindfoot_length_half = hindfoot_length / 2) %>% #defining a new variable hindfoot_length_half 
+  filter(hindfoot_length_half < 30) %>% #filtering out all hindfoot_length_half values greater than 30  
+  select(species_id, hindfoot_length_half) %>% #selcting these variables to be a part of the new dataframe
+  head(n = 5)
+  
+range(survey3$hindfoot_length_half) #ensuring length is not over 30
+```
+<br>
+
+Next we use the "split-apply-combine" data technique. This is usually done by using the `group_by()` and `summarize()` functions in tandem.
+```{r}
+##using the 'group' and 'summarize' functions
+survey %>%
+  filter(!is.na(weight), #get rid of all the NA values in weight
+         sex != "") %>% #remove empty sex values in data
+  group_by(sex, species_id) %>% #similar to select, we are only working with these two columns
+  summarize(mean_weight = mean(weight), #we can analyze two or more variables at once, with each group obtaining a defined parameter
+            min_weight = min(weight)) %>%
+  print(n = 5)
+```
+<br>
+
+```{r echo = FALSE}
+survey_combined <- read.csv("D:/Google Drive/Undergraduate Courses CSUMB/Fall 2016, Semester 7/STAT 210 Statistical Computing Seminar/R Markdown/Assignments/combined.csv")
+```
+
+#### Final Challenges:
+```{r}
+#Challenge: How many individuals were caught in each plot_type surveyed?
+survey_combined %>%
+  select(plot_type) %>%
+  tally() #tally allows us to determine the total observations of each variable level
+
+#Challenge: find the mean, min, and max hindfoot length for each species 
+survey_combined %>%
+  group_by(species_id) %>%
+  filter(!is.na(hindfoot_length)) %>%
+  summarize(mean_hindfoot = mean(hindfoot_length),
+            max_hindfoot = max(hindfoot_length),
+            min_hindfoot = min(hindfoot_length)) %>%
+  arrange(species_id, max_hindfoot, min_hindfoot, mean_hindfoot) %>% # arrange allows us to determine the order of columns in our dataset
+  head(n = 5)
+
+#Challenge: What was the heaviest animal measured in each year? Return the columns year, genus, species_id, and  weight.
+survey_combined %>%
+  select(year, genus, species_id, weight) %>%
+  filter(!is.na(weight)) %>%
+  group_by(year) %>%
+  top_n(n = 1, wt = weight) %>% # this generates the top value(s) in 'n' columns, with the variable of interests being weight; if there are any ties, additonal columns will be made display tied values
+  arrange(year, genus, species_id, weight) %>% #by default, arrange is done in ascending order
+  print(n = 5)
+```
+<br>
+
+### Exporting datasets
+We can extract a modified dataset using the `write.csv()` command.
+```{r eval = FALSE}
+
+## Now we will clean the survey data and export it as a new CSV file
+survey_clean <- survey_combined %>%
+  filter(!is.na(weight), ##removing missing numeric values
+         !is.na(hindfoot_length), 
+         species_id != "", #removing all empty strings
+         sex != "") 
+         
+## Now we will extract only the common species (exclude the rare ones)
+species_count <- survey_clean %>% 
+  group_by(species_id) %>% 
+  tally %>% 
+  filter(n >= 50) %>% ##filtering all species that are greater than or equal to 50 observations
+  select(species_id)
+  
+## We will update our clean survey with this new info
+survey_clean <- survey_clean %>%
+  filter(species_id %in% species_count$species_id) ##we replace the original species_id with the updated one
+
+## Let us export the new data as a new file, in a seperate folder from the original file to avoid overriding issues
+write.csv(survey_clean, file = "survey_clean/surveys_clean.csv",
+          row.names = FALSE) ## row names add numbered row names; we don't need them in this case
+```
